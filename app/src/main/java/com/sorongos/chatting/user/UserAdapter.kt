@@ -1,4 +1,4 @@
-package com.sorongos.chatting.sampledata
+package com.sorongos.chatting.user
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

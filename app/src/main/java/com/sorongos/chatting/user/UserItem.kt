@@ -1,4 +1,4 @@
-package com.sorongos.chatting.sampledata
+package com.sorongos.chatting.user
 
 data class UserItem(
     val userId: String,
