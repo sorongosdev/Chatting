@@ -5,21 +5,21 @@ import androidx.fragment.app.Fragment
 import android.view.View
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sorongos.chatting.R
-import com.sorongos.chatting.databinding.FragmentUserlistBinding
+import com.sorongos.chatting.databinding.FragmentChatroomlistBinding
 
-class ChatFragment : Fragment(R.layout.fragment_userlist) {
-    private lateinit var binding : FragmentUserlistBinding
+class ChatListFragment : Fragment(R.layout.fragment_chatroomlist) {
+    private lateinit var binding : FragmentChatroomlistBinding
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = FragmentUserlistBinding.bind(view)
+        binding = FragmentChatroomlistBinding.bind(view)
 
-        val userListAdapter = ChatAdapter()
-        binding.userListRecyclerView.apply{
+        val chatListAdapter = ChatAdapter()
+        binding.chatListRecyclerView.apply{
             layoutManager = LinearLayoutManager(context)
-            adapter = userListAdapter
+            adapter = chatListAdapter
         }
 
-        userListAdapter.submitList(
+        chatListAdapter.submitList(
             mutableListOf<ChatRoomItem?>().apply{
                 add(ChatRoomItem("11","22","33"))
             }

@@ -14,13 +14,13 @@
     <fragment
         android:label="fragment_chatroomlist"
         android:id="@+id/chatroomList"
-        android:name="com.sorongos.chatting.ChatroomFragment"
+        android:name="com.sorongos.chatting.chatlist.ChatListFragment"
         tools:layout="@layout/fragment_chatroomlist"
         />
     <fragment
         android:label="fragment_mypage"
         android:id="@+id/myPage"
-        android:name="com.sorongos.chatting.MyPageFragment"
+        android:name="com.sorongos.chatting.mypage.MyPageFragment"
         tools:layout="@layout/fragment_mypage"
         />
 </navigation>
