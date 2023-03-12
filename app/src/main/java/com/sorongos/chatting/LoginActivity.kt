@@ -10,7 +10,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.addTextChangedListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.sorongos.chatting.Key.Companion.DB_USERS
 import com.sorongos.chatting.databinding.ActivityLoginBinding
 
 class LoginActivity : AppCompatActivity() {
@@ -27,12 +32,14 @@ class LoginActivity : AppCompatActivity() {
         checkId()
         checkPw()
 
+        /**회원가입*/
         binding.signUpButton.setOnClickListener {
             email = binding.logInputId.text.toString()
             password = binding.logInputPw.text.toString()
             createAccount(email, password)
         }
 
+        /**로그인*/
         binding.signInButton.setOnClickListener {
             email = binding.logInputId.text.toString()
             password = binding.logInputPw.text.toString()
@@ -48,12 +55,10 @@ class LoginActivity : AppCompatActivity() {
             auth?.createUserWithEmailAndPassword(email, password)
                 ?.addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        Log.d(ContentValues.TAG, "createUserWithEmail:success")
                         Toast.makeText(this, "가입이 완료되었습니다.", Toast.LENGTH_SHORT).show()
                     }
                     // 이미 등록된 사용자의 경우
                     else {
-                        Log.d(ContentValues.TAG, "createUserWithEmail:failed")
                         Toast.makeText(this, "회원가입에 실패하였습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -64,15 +69,26 @@ class LoginActivity : AppCompatActivity() {
     private fun signIn(email: String, password: String) {
         if (email.isNotEmpty() && password.isNotEmpty()) {
             auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
-                    //로그인 성공시 mainActivity로 이동
-                    if (task.isSuccessful) {
-                        val intent = Intent(this,MainActivity::class.java)
-                        startActivity(intent)
+                //로그인 성공시 mainActivity로 이동
+                val currentUser = Firebase.auth.currentUser
+
+                if (task.isSuccessful && currentUser != null) {
+                    val userId = currentUser.uid
+
+                    val user = mutableMapOf<String, Any>()
+                    user["userId"] = userId
+                    user["username"] = email
+
+
+                    Firebase.database.reference.child(DB_USERS).child(userId).updateChildren(user)
+
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
                     //로그인 실패
-                    } else {
-                        Log.d(ContentValues.TAG, "signInWithEmail: failed")
-                    }
+                } else {
+                    Log.d(ContentValues.TAG, "signInWithEmail: failed")
                 }
+            }
         }
     }
 
