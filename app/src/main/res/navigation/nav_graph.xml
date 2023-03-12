@@ -12,15 +12,15 @@
         tools:layout="@layout/fragment_userlist"
         />
     <fragment
-        android:label="fragment_userlist"
+        android:label="fragment_chatroomlist"
         android:id="@+id/chatroomList"
-        android:name="com.sorongos.chatting.user.UserFragment"
-        tools:layout="@layout/fragment_userlist"
+        android:name="com.sorongos.chatting.ChatroomFragment"
+        tools:layout="@layout/fragment_chatroomlist"
         />
     <fragment
-        android:label="fragment_userlist"
+        android:label="fragment_mypage"
         android:id="@+id/myPage"
-        android:name="com.sorongos.chatting.user.UserFragment"
-        tools:layout="@layout/fragment_userlist"
+        android:name="com.sorongos.chatting.MyPageFragment"
+        tools:layout="@layout/fragment_mypage"
         />
 </navigation>

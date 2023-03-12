@@ -8,7 +8,7 @@ import com.sorongos.chatting.databinding.FragmentChatroomlistBinding
 import com.sorongos.chatting.databinding.FragmentUserlistBinding
 import com.sorongos.chatting.user.UserAdapter
 
-class ChatroomFragment : Fragment(R.layout.fragment_userlist) {
+class ChatroomFragment : Fragment(R.layout.fragment_chatroomlist) {
     private lateinit var binding : FragmentChatroomlistBinding
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
