@@ -8,13 +8,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.sorongos.chatting.databinding.ItemChatroomBinding
 import com.sorongos.chatting.databinding.ItemUserBinding
 
-class ChatAdapter : ListAdapter<ChatRoomItem, ChatAdapter.ViewHolder>(differ) {
+class ChatAdapter(private val onClick: (ChatRoomItem) -> Unit) : ListAdapter<ChatRoomItem, ChatAdapter.ViewHolder>(differ) {
 
     inner class ViewHolder(private val binding: ItemChatroomBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(item: ChatRoomItem) {
             binding.nicknameTextView.text = item.otherUserName
             binding.lastMessageTextView.text = item.lastMessage
+
+            binding.root.setOnClickListener {
+                onClick(item)
+            }
         }
     }
 

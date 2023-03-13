@@ -1,5 +1,6 @@
 package com.sorongos.chatting.chatlist
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.View
@@ -12,6 +13,7 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.sorongos.chatting.Key
 import com.sorongos.chatting.R
+import com.sorongos.chatting.chatdetail.ChatActivity
 import com.sorongos.chatting.databinding.FragmentChatroomlistBinding
 
 class ChatListFragment : Fragment(R.layout.fragment_chatroomlist) {
@@ -20,7 +22,13 @@ class ChatListFragment : Fragment(R.layout.fragment_chatroomlist) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentChatroomlistBinding.bind(view)
 
-        val chatListAdapter = ChatAdapter()
+        val chatListAdapter = ChatAdapter{chatRoomItem ->
+
+            val intent = Intent(context, ChatActivity::class.java)
+            intent.putExtra(ChatActivity.EXTRA_OTHER_USER_ID,chatRoomItem.otherUserId)
+            intent.putExtra(ChatActivity.EXTRA_CHAT_ROOM_ID,chatRoomItem.chatRoomId)
+            startActivity(intent)
+        }
         binding.chatListRecyclerView.apply{
             layoutManager = LinearLayoutManager(context)
             adapter = chatListAdapter
