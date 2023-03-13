@@ -19,6 +19,7 @@ class ChatActivity : AppCompatActivity() {
     private var chatRoomId: String = ""
     private var otherUserId: String = ""
     private var myUserId: String = ""
+    private var myUserName: String = ""
 
     private val chatItemList = mutableListOf<ChatItem>()
 
@@ -31,8 +32,8 @@ class ChatActivity : AppCompatActivity() {
         binding = ActivityChatdetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        chatRoomId = intent.getStringExtra("chatRoomId") ?: return
-        otherUserId = intent.getStringExtra("otheerUserId") ?: return
+        chatRoomId = intent.getStringExtra(EXTRA_CHAT_ROOM_ID) ?: return
+        otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: return
         myUserId = Firebase.auth.currentUser?.uid ?: ""
 
         val chatAdapter = ChatAdapter()
@@ -41,7 +42,7 @@ class ChatActivity : AppCompatActivity() {
         Firebase.database.reference.child(Key.DB_USERS).child(myUserId).get()
             .addOnSuccessListener {
                 val myUserItem = it.getValue(UserItem::class.java)
-                val myUserName = myUserItem?.username
+                myUserName = myUserItem?.username ?: ""
             }
         Firebase.database.reference.child(Key.DB_USERS).child(otherUserId).get()
             .addOnSuccessListener {
@@ -80,9 +81,38 @@ class ChatActivity : AppCompatActivity() {
             layoutManager = LinearLayoutManager(context)
             adapter = chatAdapter
         }
+
+        binding.sendButton.setOnClickListener {
+            val message = binding.messageEditText.text.toString()
+
+            if (message.isEmpty()) {
+                return@setOnClickListener
+            }
+            val newChatItem = ChatItem(
+                message = message,
+                userId = myUserId,
+
+                )
+
+            Firebase.database.reference.child(Key.DB_CHATS).child(chatRoomId).push().apply {
+                newChatItem.chatId = key // 자동 키생성
+                setValue(newChatItem)
+            }
+            val updates: MutableMap<String, Any> = hashMapOf(
+                "${Key.DB_CHAT_ROOMS}/$myUserId/$otherUserId/lastMessage" to message,
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/lastMessage" to message,
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/chatRoomId" to chatRoomId, //내가 처음 생성하는 것임
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/otherUserId" to myUserId,
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/otherUserName" to myUserName,
+            )
+
+            Firebase.database.reference.updateChildren(updates)
+
+            binding.messageEditText.text.clear()
+        }
     }
 
-    companion object{
+    companion object {
         const val EXTRA_CHAT_ROOM_ID = "chatRoomId"
         const val EXTRA_OTHER_USER_ID = "otherUserId"
     }
