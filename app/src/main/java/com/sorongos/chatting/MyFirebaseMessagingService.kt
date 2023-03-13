@@ -27,6 +27,7 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setContentTitle(getString(R.string.app_name))
             .setContentText(body)
 
+        //id 여러개 하면 여러개의 알림
         notificationManager.notify(0, notificationBuilder.build())
     }
 

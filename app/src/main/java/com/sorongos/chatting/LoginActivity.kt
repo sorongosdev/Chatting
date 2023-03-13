@@ -15,6 +15,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import com.sorongos.chatting.Key.Companion.DB_USERS
 import com.sorongos.chatting.databinding.ActivityLoginBinding
 
@@ -68,27 +69,33 @@ class LoginActivity : AppCompatActivity() {
     /**로그인*/
     private fun signIn(email: String, password: String) {
         if (email.isNotEmpty() && password.isNotEmpty()) {
-            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this) { task ->
-                //로그인 성공시 mainActivity로 이동
-                val currentUser = Firebase.auth.currentUser
+            auth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    //로그인 성공시 mainActivity로 이동
+                    val currentUser = auth.currentUser
+                    if (task.isSuccessful && currentUser != null) {
+                        val userId = currentUser.uid
 
-                if (task.isSuccessful && currentUser != null) {
-                    val userId = currentUser.uid
+                        Firebase.messaging.token.addOnCompleteListener {
+                            val token = it.result
+                            val user = mutableMapOf<String, Any>()
+                            user["userId"] = userId
+                            user["username"] = email
+                            user["fcmToken"] = token
 
-                    val user = mutableMapOf<String, Any>()
-                    user["userId"] = userId
-                    user["username"] = email
+                            Firebase.database.reference.child(DB_USERS).child(userId)
+                                .updateChildren(user)
 
+                            val intent = Intent(this, MainActivity::class.java)
+                            startActivity(intent)
+                            finish()
+                        }
 
-                    Firebase.database.reference.child(DB_USERS).child(userId).updateChildren(user)
-
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    //로그인 실패
-                } else {
-                    Log.d(ContentValues.TAG, "signInWithEmail: failed")
+                        //로그인 실패
+                    } else {
+                        Log.d(ContentValues.TAG, "signInWithEmail: failed")
+                    }
                 }
-            }
         }
     }
 
