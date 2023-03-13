@@ -59,7 +59,10 @@ class ChatActivity : AppCompatActivity() {
                     chatItem ?: return
 
                     chatItemList.add(chatItem)
-                    chatAdapter.submitList(chatItemList)
+                    //리스트를 업데이트할 때 동일하지 않으면 업데이트하는데,
+                    //chatItemList를 그대로 submit하면 똑같은 리스트를 참조하기 때문에
+                    //toMutableList로 복사본을 비교해주어야함
+                    chatAdapter.submitList(chatItemList.toMutableList())
                 }
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
