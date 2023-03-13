@@ -1,6 +1,7 @@
 package com.sorongos.chatting.chatdetail
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.ktx.auth
@@ -10,16 +11,26 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.sorongos.chatting.Key
+import com.sorongos.chatting.R
 import com.sorongos.chatting.databinding.ActivityChatdetailBinding
 import com.sorongos.chatting.user.UserItem
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import java.io.IOException
 
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatdetailBinding
     private var chatRoomId: String = ""
     private var otherUserId: String = ""
+    private var otherUserFcmToken: String = ""
     private var myUserId: String = ""
     private var myUserName: String = ""
+    private lateinit var chatAdapter: ChatAdapter
+    private var isInit = false
+
 
     private val chatItemList = mutableListOf<ChatItem>()
 
@@ -36,20 +47,96 @@ class ChatActivity : AppCompatActivity() {
         otherUserId = intent.getStringExtra(EXTRA_OTHER_USER_ID) ?: return
         myUserId = Firebase.auth.currentUser?.uid ?: ""
 
-        val chatAdapter = ChatAdapter()
+        chatAdapter = ChatAdapter()
 
         //db 조회 두번 : mine, other
         Firebase.database.reference.child(Key.DB_USERS).child(myUserId).get()
             .addOnSuccessListener {
                 val myUserItem = it.getValue(UserItem::class.java)
                 myUserName = myUserItem?.username ?: ""
+
+                getOtherUserData()
             }
+
+
+        binding.chatRecyclerView.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = chatAdapter
+        }
+
+        binding.sendButton.setOnClickListener {
+            val message = binding.messageEditText.text.toString()
+
+            if (!isInit) return@setOnClickListener
+
+            if (message.isEmpty()) {
+                return@setOnClickListener
+            }
+            val newChatItem = ChatItem(
+                message = message,
+                userId = myUserId,
+
+                )
+
+            Firebase.database.reference.child(Key.DB_CHATS).child(chatRoomId).push().apply {
+                newChatItem.chatId = key // 자동 키생성
+                setValue(newChatItem)
+            }
+            val updates: MutableMap<String, Any> = hashMapOf(
+                "${Key.DB_CHAT_ROOMS}/$myUserId/$otherUserId/lastMessage" to message,
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/lastMessage" to message,
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/chatRoomId" to chatRoomId, //내가 처음 생성하는 것임
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/otherUserId" to myUserId,
+                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/otherUserName" to myUserName,
+            )
+
+            Firebase.database.reference.updateChildren(updates)
+
+            val client = OkHttpClient()
+
+            //json
+            val root = JSONObject()
+            val notification = JSONObject()
+            notification.put("body", message)
+            notification.put("title", getString(R.string.app_name))
+
+            root.put("notification", notification)
+            root.put("to", otherUserFcmToken)
+            root.put("priority", "high")
+
+            //string을 json으로 변환
+            val requestBody =
+                root.toString().toRequestBody("application/json;charset=utf-8".toMediaType())
+            val request =
+                Request.Builder().post(requestBody).url("https://fcm.googleapis.com/fcm/send")
+                    .header("Authorization", "key=${Key.FCM_SERVER_KEY}").build()
+            client.newCall(request).enqueue(object : Callback {
+                override fun onFailure(call: Call, e: IOException) {
+                    e.stackTraceToString()
+                }
+
+                override fun onResponse(call: Call, response: Response) {
+                    Log.e("ChatActivity",response.toString())
+                }
+
+            })
+            binding.messageEditText.text.clear()
+        }
+    }
+
+    private fun getOtherUserData() {
         Firebase.database.reference.child(Key.DB_USERS).child(otherUserId).get()
             .addOnSuccessListener {
                 val otherUserItem = it.getValue(UserItem::class.java)
+                otherUserFcmToken = otherUserItem?.fcmToken.orEmpty()
                 chatAdapter.otherUserItem = otherUserItem
-            }
 
+                isInit = true
+                getChatData()
+            }
+    }
+
+    private fun getChatData() {
         //chatting 가져오기
         Firebase.database.reference.child(Key.DB_CHATS).child(chatRoomId).addChildEventListener(
             object : ChildEventListener {
@@ -79,40 +166,6 @@ class ChatActivity : AppCompatActivity() {
 
             }
         )
-
-        binding.chatRecyclerView.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = chatAdapter
-        }
-
-        binding.sendButton.setOnClickListener {
-            val message = binding.messageEditText.text.toString()
-
-            if (message.isEmpty()) {
-                return@setOnClickListener
-            }
-            val newChatItem = ChatItem(
-                message = message,
-                userId = myUserId,
-
-                )
-
-            Firebase.database.reference.child(Key.DB_CHATS).child(chatRoomId).push().apply {
-                newChatItem.chatId = key // 자동 키생성
-                setValue(newChatItem)
-            }
-            val updates: MutableMap<String, Any> = hashMapOf(
-                "${Key.DB_CHAT_ROOMS}/$myUserId/$otherUserId/lastMessage" to message,
-                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/lastMessage" to message,
-                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/chatRoomId" to chatRoomId, //내가 처음 생성하는 것임
-                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/otherUserId" to myUserId,
-                "${Key.DB_CHAT_ROOMS}/$otherUserId/$myUserId/otherUserName" to myUserName,
-            )
-
-            Firebase.database.reference.updateChildren(updates)
-
-            binding.messageEditText.text.clear()
-        }
     }
 
     companion object {

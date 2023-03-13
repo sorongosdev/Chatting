@@ -50,6 +50,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx' // auth
     implementation 'com.google.firebase:firebase-database-ktx' // realtime database
     implementation 'com.google.firebase:firebase-messaging-ktx' // fcm
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
 
     implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
