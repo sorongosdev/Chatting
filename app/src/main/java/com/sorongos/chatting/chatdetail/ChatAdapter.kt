@@ -29,8 +29,6 @@ class ChatAdapter : ListAdapter<ChatItem, ChatAdapter.ViewHolder>(differ) {
                 binding.messageTextView.text = item.message
                 binding.messageTextView.gravity = Gravity.END
             }
-            binding.usernameTextView.text = "밖에서 넣엊귀"
-            binding.messageTextView.text = item.message
         }
     }
 
