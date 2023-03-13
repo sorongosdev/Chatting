@@ -81,4 +81,9 @@ class ChatActivity : AppCompatActivity() {
             adapter = chatAdapter
         }
     }
+
+    companion object{
+        const val EXTRA_CHAT_ROOM_ID = "chatRoomId"
+        const val EXTRA_OTHER_USER_ID = "otherUserId"
+    }
 }
