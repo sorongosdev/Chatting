@@ -16,10 +16,12 @@ import com.google.firebase.ktx.Firebase
 import com.sorongos.chatting.databinding.ActivityMainBinding
 import android.Manifest
 import androidx.annotation.RequiresApi
+import androidx.navigation.NavController
 
 class MainActivity : AppCompatActivity() {
     val currentUser = Firebase.auth.currentUser
     private lateinit var binding: ActivityMainBinding
+    private lateinit var navController: NavController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -30,9 +32,24 @@ class MainActivity : AppCompatActivity() {
 
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        val navController = navHostFragment.findNavController()
+        navController = navHostFragment.findNavController()
         binding.bottomNavigationView.setupWithNavController(navController)
 
+        setToolbarTitle()
+    }
+
+    private fun setToolbarTitle() {
+        /**툴바 텍스트 설정*/
+        navController.addOnDestinationChangedListener{ _, destination, _ ->
+            when (destination.id){
+                R.id.userList -> {
+                    supportActionBar?.title = "친구"}
+                R.id.myPage -> {
+                    supportActionBar?.title = "마이페이지"}
+                R.id.chatroomList -> {
+                    supportActionBar?.title = "채팅 목록"}
+            }
+        }
     }
 
     /**current user가 없으면 loginActivity로 전환*/
