@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -123,7 +122,7 @@ class ChatActivity : AppCompatActivity() {
                 root.toString().toRequestBody("application/json;charset=utf-8".toMediaType())
             val request =
                 Request.Builder().post(requestBody).url("https://fcm.googleapis.com/fcm/send")
-                    .header("Authorization", "key=${Key.FCM_SERVER_KEY}").build()
+                    .header("Authorization", "key=${getString(R.string.fcm_server_key)}").build()
             client.newCall(request).enqueue(object : Callback {
                 override fun onFailure(call: Call, e: IOException) {
                     e.stackTraceToString()
