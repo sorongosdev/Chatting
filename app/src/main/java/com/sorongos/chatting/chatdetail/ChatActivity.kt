@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -23,12 +25,14 @@ import java.io.IOException
 class ChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityChatdetailBinding
+    private lateinit var chatAdapter: ChatAdapter
+    private lateinit var linearLayoutManager: LinearLayoutManager
+
     private var chatRoomId: String = ""
     private var otherUserId: String = ""
     private var otherUserFcmToken: String = ""
     private var myUserId: String = ""
     private var myUserName: String = ""
-    private lateinit var chatAdapter: ChatAdapter
     private var isInit = false
 
 
@@ -48,6 +52,7 @@ class ChatActivity : AppCompatActivity() {
         myUserId = Firebase.auth.currentUser?.uid ?: ""
 
         chatAdapter = ChatAdapter()
+        linearLayoutManager = LinearLayoutManager(applicationContext)
 
         //db 조회 두번 : mine, other
         Firebase.database.reference.child(Key.DB_USERS).child(myUserId).get()
@@ -60,9 +65,18 @@ class ChatActivity : AppCompatActivity() {
 
 
         binding.chatRecyclerView.apply {
-            layoutManager = LinearLayoutManager(context)
+            layoutManager = linearLayoutManager
             adapter = chatAdapter
         }
+
+        chatAdapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver(){
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                super.onItemRangeInserted(positionStart, itemCount)
+
+                linearLayoutManager.smoothScrollToPosition(binding.chatRecyclerView, null, chatAdapter.itemCount)
+
+            }
+        })
 
         binding.sendButton.setOnClickListener {
             val message = binding.messageEditText.text.toString()
@@ -116,7 +130,7 @@ class ChatActivity : AppCompatActivity() {
                 }
 
                 override fun onResponse(call: Call, response: Response) {
-                    Log.e("ChatActivity",response.toString())
+                    Log.e("ChatActivity", response.toString())
                 }
 
             })
